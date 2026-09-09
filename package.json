@@ -1,0 +1,28 @@
+{
+  "name": "classroom",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/backend/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/backend/index.ts",
+    "build": "tsc",
+    "start": "node dist/backend/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.0",
+  "devDependencies": {
+    "@types/node": "^26.5.0",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "1.0.0-rc.4",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "1.0.0-rc.4",
+    "pg": "^8.23.0"
+  }
+}
