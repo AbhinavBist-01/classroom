@@ -7,7 +7,11 @@
   "scripts": {
     "dev": "tsx watch src/backend/index.ts",
     "build": "tsc",
-    "start": "node dist/backend/index.js"
+    "start": "node dist/backend/index.js",
+    "db:generate": "pnpm exec drizzle-kit generate",
+    "db:migrate": "pnpm exec drizzle-kit migrate",
+    "db:push": "pnpm exec drizzle-kit push",
+    "db:studio": "pnpm exec drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
