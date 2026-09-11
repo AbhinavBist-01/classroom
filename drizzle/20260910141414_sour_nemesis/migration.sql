@@ -1,3 +1,6 @@
+CREATE TYPE "role" AS ENUM('user', 'admin');--> statement-breakpoint
+CREATE TYPE "visibility" AS ENUM('public', 'private');--> statement-breakpoint
+CREATE TYPE "status" AS ENUM('pending', 'graded', 'passed', 'failed');--> statement-breakpoint
 CREATE TABLE "assignment_tests" (
 	"id" serial PRIMARY KEY UNIQUE,
 	"assignment_id" integer NOT NULL,
@@ -57,11 +60,11 @@ ALTER TABLE "users" ADD COLUMN "github_id" integer NOT NULL;--> statement-breakp
 ALTER TABLE "users" ADD COLUMN "role" "role" DEFAULT 'user'::"role" NOT NULL;--> statement-breakpoint
 ALTER TABLE "users" DROP COLUMN "age";--> statement-breakpoint
 ALTER TABLE "users" DROP COLUMN "email";--> statement-breakpoint
-CREATE SEQUENCE "users_id_seq";--> statement-breakpoint
-ALTER TABLE "users" ALTER COLUMN "id" SET DEFAULT nextval('users_id_seq')--> statement-breakpoint
+ALTER TABLE "users" ALTER COLUMN "id" DROP IDENTITY IF EXISTS;--> statement-breakpoint
+CREATE SEQUENCE IF NOT EXISTS "users_id_seq";--> statement-breakpoint
+ALTER TABLE "users" ALTER COLUMN "id" SET DEFAULT nextval('users_id_seq');--> statement-breakpoint
 ALTER SEQUENCE "users_id_seq" OWNED BY "public"."users"."id";--> statement-breakpoint
 ALTER TABLE "users" ALTER COLUMN "id" SET DATA TYPE int USING "id"::int;--> statement-breakpoint
-ALTER TABLE "users" ALTER COLUMN "id" DROP IDENTITY;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_id_key" UNIQUE("id");--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_github_id_key" UNIQUE("github_id");--> statement-breakpoint
 ALTER TABLE "assignment_tests" ADD CONSTRAINT "assignment_tests_assignment_id_assignments_id_fkey" FOREIGN KEY ("assignment_id") REFERENCES "assignments"("id");--> statement-breakpoint
