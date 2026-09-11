@@ -7,6 +7,10 @@ import { classroomsRouter } from "./modules/classrooms/classrooms.routes.js";
 import { assignmentsRouter } from "./modules/assignments/assignments.routes.js";
 import { submissionsRouter } from "./modules/submissions/submissions.routes.js";
 import { webhooksRouter } from "./modules/github/webhooks.routes.js";
+import { gradesRouter } from "./modules/grades/grades.routes.js";
+import { requireAuth } from "./middleware/auth.js";
+
+export { requireAuth };
 
 const app: express.Express = express();
 const port = process.env.PORT || 5000;
@@ -29,30 +33,6 @@ app.use(
   })
 );
 
-// Session authentication middleware
-export const requireAuth = async (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) => {
-  try {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(req.headers),
-    });
-
-    if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    req.user = session.user;
-    req.session = session.session;
-    next();
-  } catch {
-    res.status(500).json({ error: "Authentication verification failed" });
-  }
-};
-
 // GET /users/me endpoint per agent.md spec
 app.get("/users/me", requireAuth, (req: express.Request, res: express.Response) => {
   res.json(req.user);
@@ -74,6 +54,10 @@ app.use("/api/submissions", requireAuth, submissionsRouter);
 app.use("/api/webhooks/github", webhooksRouter);
 app.use("/webhooks/github", webhooksRouter);
 app.use("/github/webhook", webhooksRouter);
+
+// Grades Module (Phase 11: Tier 1 Autograding & Ingestion)
+app.use("/grades", gradesRouter);
+app.use("/api/grades", gradesRouter);
 
 // Health check
 app.get("/health", (_req: express.Request, res: express.Response) => {

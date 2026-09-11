@@ -71,4 +71,29 @@ export class SubmissionController {
       res.status(500).json({ error: "Failed to retrieve submission" });
     }
   }
+
+  /**
+   * POST /submissions/:id/regrade
+   */
+  static async regrade(req: Request, res: Response): Promise<void> {
+    const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const submissionId = parseInt(rawId ?? "", 10);
+
+    if (isNaN(submissionId)) {
+      res.status(400).json({ error: "Invalid submission ID" });
+      return;
+    }
+
+    try {
+      const result = await SubmissionService.regradeSubmission(submissionId, req.user!.id);
+      if (result.status === "not_found") {
+        res.status(404).json({ error: result.error });
+        return;
+      }
+
+      res.status(202).json(result);
+    } catch {
+      res.status(500).json({ error: "Failed to trigger regrading" });
+    }
+  }
 }

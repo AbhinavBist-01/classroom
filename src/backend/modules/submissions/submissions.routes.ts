@@ -5,3 +5,6 @@ export const submissionsRouter: Router = Router();
 
 // GET /submissions/:id
 submissionsRouter.get("/:id", SubmissionController.getById);
+
+// POST /submissions/:id/regrade
+submissionsRouter.post("/:id/regrade", SubmissionController.regrade);

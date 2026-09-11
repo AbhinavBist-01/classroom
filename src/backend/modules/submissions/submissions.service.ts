@@ -8,7 +8,7 @@ import {
   submissionsTable,
   user,
 } from "../../db/schema.js";
-import { repoProvisionQueue } from "../queue/queue.js";
+import { gradingQueue, repoProvisionQueue } from "../queue/queue.js";
 
 /**
  * Sanitizes a string for use in GitHub repository names
@@ -198,5 +198,47 @@ export class SubmissionService {
     }
 
     return null;
+  }
+
+  /**
+   * Triggers manual re-evaluation of a submission
+   */
+  static async regradeSubmission(submissionId: number, requestingUserId: string) {
+    const submission = await this.getSubmission(submissionId, requestingUserId);
+    if (!submission) {
+      return { status: "not_found" as const, error: "Submission not found or access denied" };
+    }
+
+    // Reset status to pending
+    const [updated] = await db
+      .update(submissionsTable)
+      .set({
+        status: "pending",
+        score: 0,
+      })
+      .where(eq(submissionsTable.id, submissionId))
+      .returning();
+
+    // Enqueue grading job
+    try {
+      await gradingQueue.add("grade", {
+        submission_id: submission.id,
+        assignment_id: submission.assignment_id,
+        student_id: submission.student_id,
+        github_repo: submission.github_repo,
+        commit_sha: submission.commit_sha || "",
+      });
+    } catch (queueErr) {
+      console.warn(
+        "[SubmissionService:regrade] Could not enqueue grading job (Redis offline?):",
+        (queueErr as Error).message
+      );
+    }
+
+    return {
+      status: "success" as const,
+      message: "Regrading has been queued",
+      submission: updated,
+    };
   }
 }

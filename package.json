@@ -8,6 +8,7 @@
     "dev": "tsx watch src/backend/index.ts",
     "build": "tsc",
     "start": "node dist/backend/index.js",
+    "worker": "tsx src/backend/workers/index.ts",
     "db:generate": "pnpm exec drizzle-kit generate",
     "db:migrate": "pnpm exec drizzle-kit migrate",
     "db:push": "pnpm exec drizzle-kit push",
