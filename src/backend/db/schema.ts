@@ -118,3 +118,18 @@ export const testResultsTable = pgTable("test_results", {
   stderr: text("stderr").notNull(),
   score: integer("score").notNull(),
 });
+
+// Submission Feedback (Phase 14: Teacher Review & GitHub Sync)
+export const submissionFeedbackTable = pgTable("submission_feedback", {
+  id: serial("id").primaryKey(),
+  submission_id: integer("submission_id")
+    .notNull()
+    .references(() => submissionsTable.id, { onDelete: "cascade" }),
+  author_id: text("author_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  github_comment_id: varchar("github_comment_id", { length: 255 }),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
