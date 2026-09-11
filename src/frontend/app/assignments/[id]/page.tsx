@@ -62,6 +62,15 @@ interface GradeDetail {
   }>;
 }
 
+interface FeedbackItem {
+  id: number;
+  author_name: string | null;
+  author_email: string;
+  content: string;
+  github_comment_id: string | null;
+  created_at: string;
+}
+
 export default function AssignmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const assignmentId = resolvedParams.id;
@@ -69,6 +78,7 @@ export default function AssignmentDetailPage({ params }: { params: Promise<{ id:
   const [assignment, setAssignment] = useState<AssignmentData | null>(null);
   const [submission, setSubmission] = useState<SubmissionRecord | null>(null);
   const [grade, setGrade] = useState<GradeDetail | null>(null);
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
   const [isRegrading, setIsRegrading] = useState(false);
@@ -87,8 +97,9 @@ export default function AssignmentDetailPage({ params }: { params: Promise<{ id:
         );
         if (subData?.submission) {
           setSubmission(subData.submission);
-          // If graded or ready, fetch detailed grades
+          // If graded or ready, fetch detailed grades and feedback
           fetchGrades(subData.submission.id);
+          fetchFeedbacks(subData.submission.id);
         }
       } catch {
         // If not already accepted or needs student action
@@ -106,6 +117,15 @@ export default function AssignmentDetailPage({ params }: { params: Promise<{ id:
       setGrade(gradeData);
     } catch {
       // Grades might not be ready yet
+    }
+  };
+
+  const fetchFeedbacks = async (submissionId: number) => {
+    try {
+      const feedbackData = await apiFetch<FeedbackItem[]>(`/submissions/${submissionId}/feedback`);
+      setFeedbacks(feedbackData);
+    } catch {
+      // ignore
     }
   };
 
@@ -350,6 +370,32 @@ export default function AssignmentDetailPage({ params }: { params: Promise<{ id:
           </div>
         )}
       </div>
+
+      {/* Instructor Feedback (Phase 14) */}
+      {feedbacks.length > 0 && (
+        <div className="card-surface p-6 flex flex-col gap-4 border-l-2 border-l-accent">
+          <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-textPrimary">
+            Instructor Feedback & Code Review
+          </h2>
+
+          <div className="divide-y divide-borderSubtle">
+            {feedbacks.map((fb) => (
+              <div key={fb.id} className="py-3 flex flex-col gap-2 font-mono text-xs">
+                <div className="flex items-center justify-between text-textMuted text-[11px]">
+                  <span>{fb.author_name || fb.author_email}</span>
+                  <span>{new Date(fb.created_at).toLocaleDateString()}</span>
+                </div>
+                <p className="text-textPrimary whitespace-pre-wrap leading-relaxed">{fb.content}</p>
+                {fb.github_comment_id && (
+                  <span className="text-[10px] text-accent font-mono flex items-center gap-1">
+                    ✓ Synced to GitHub commit comment #{fb.github_comment_id}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
