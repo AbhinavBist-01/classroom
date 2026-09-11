@@ -5,6 +5,7 @@ import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import { classroomsRouter } from "./modules/classrooms/classrooms.routes.js";
 import { assignmentsRouter } from "./modules/assignments/assignments.routes.js";
+import { submissionsRouter } from "./modules/submissions/submissions.routes.js";
 
 const app: express.Express = express();
 const port = process.env.PORT || 5000;
@@ -57,6 +58,10 @@ app.use("/api/classrooms", requireAuth, classroomsRouter);
 // Assignments Module (Phase 6)
 app.use("/assignments", requireAuth, assignmentsRouter);
 app.use("/api/assignments", requireAuth, assignmentsRouter);
+
+// Submissions Module (Phase 8 & 9)
+app.use("/submissions", requireAuth, submissionsRouter);
+app.use("/api/submissions", requireAuth, submissionsRouter);
 
 // Health check
 app.get("/health", (_req: express.Request, res: express.Response) => {

@@ -1,7 +1,11 @@
-import { Router } from "express";
+import { SubmissionController } from "../submissions/submissions.controller.js";
 import { AssignmentController } from "./assignments.controller.js";
+import { Router } from "express";
 
 export const assignmentsRouter: Router = Router();
+
+// POST /assignments/:id/accept - Student accepts assignment (queues repo generation)
+assignmentsRouter.post("/:id/accept", SubmissionController.accept);
 
 // GET /assignments/:id - View assignment details and tests
 assignmentsRouter.get("/:id", AssignmentController.getById);
