@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.js";
+import { classroomsRouter } from "./modules/classrooms/classrooms.routes.js";
 
 const app: express.Express = express();
 const port = process.env.PORT || 5000;
@@ -47,6 +48,10 @@ export const requireAuth = async (
 app.get("/users/me", requireAuth, (req: express.Request, res: express.Response) => {
   res.json(req.user);
 });
+
+// Classrooms Module (Phase 4)
+app.use("/classrooms", requireAuth, classroomsRouter);
+app.use("/api/classrooms", requireAuth, classroomsRouter);
 
 // Health check
 app.get("/health", (_req: express.Request, res: express.Response) => {
