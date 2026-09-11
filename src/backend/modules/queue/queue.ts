@@ -44,3 +44,27 @@ export const repoProvisionQueue = new Queue<RepoProvisionJobData>("repo-provisio
 repoProvisionQueue.on("error", () => {
   // Suppress BullMQ unhandled EventEmitter error when Redis is offline
 });
+
+export interface GradingJobData {
+  submission_id: number;
+  assignment_id: number;
+  student_id: string;
+  github_repo: string;
+  commit_sha: string;
+}
+
+export const gradingQueue = new Queue<GradingJobData>("grading", {
+  connection: redisConnection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 2000,
+    },
+    removeOnComplete: true,
+  },
+});
+
+gradingQueue.on("error", () => {
+  // Suppress BullMQ unhandled EventEmitter error when Redis is offline
+});

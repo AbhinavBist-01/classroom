@@ -6,6 +6,7 @@ import { auth } from "./lib/auth.js";
 import { classroomsRouter } from "./modules/classrooms/classrooms.routes.js";
 import { assignmentsRouter } from "./modules/assignments/assignments.routes.js";
 import { submissionsRouter } from "./modules/submissions/submissions.routes.js";
+import { webhooksRouter } from "./modules/github/webhooks.routes.js";
 
 const app: express.Express = express();
 const port = process.env.PORT || 5000;
@@ -20,7 +21,13 @@ app.use(
 // Mount Better Auth router before express.json() so body streaming works properly
 app.all(["/api/auth", "/api/auth/{*path}"], toNodeHandler(auth));
 
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: express.Request, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // Session authentication middleware
 export const requireAuth = async (
@@ -62,6 +69,11 @@ app.use("/api/assignments", requireAuth, assignmentsRouter);
 // Submissions Module (Phase 8 & 9)
 app.use("/submissions", requireAuth, submissionsRouter);
 app.use("/api/submissions", requireAuth, submissionsRouter);
+
+// Webhook Endpoints (Phase 10: GitHub App Webhooks - Unauthenticated, verified by HMAC)
+app.use("/api/webhooks/github", webhooksRouter);
+app.use("/webhooks/github", webhooksRouter);
+app.use("/github/webhook", webhooksRouter);
 
 // Health check
 app.get("/health", (_req: express.Request, res: express.Response) => {

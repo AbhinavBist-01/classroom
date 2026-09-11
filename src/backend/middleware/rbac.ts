@@ -12,6 +12,7 @@ declare global {
       session?: Session["session"];
       classroomRole?: "owner" | "ta" | "student";
       classroom?: typeof classroomsTable.$inferSelect;
+      rawBody?: Buffer;
     }
   }
 }
