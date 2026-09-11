@@ -11,6 +11,8 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
+export * from "./auth-schema.js";
+
 export const roleEnum = pgEnum("role", ["user", "admin"]);
 export const visibilityEnum = pgEnum("visibility", ["public", "private"]);
 export const submissionStatusEnum = pgEnum("submission_status", [
