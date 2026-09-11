@@ -35,8 +35,8 @@ export const requireAuth = async (
       return;
     }
 
-    (req as express.Request & { user: typeof session.user; session: typeof session.session }).user = session.user;
-    (req as express.Request & { user: typeof session.user; session: typeof session.session }).session = session.session;
+    req.user = session.user;
+    req.session = session.session;
     next();
   } catch {
     res.status(500).json({ error: "Authentication verification failed" });
@@ -45,8 +45,7 @@ export const requireAuth = async (
 
 // GET /users/me endpoint per agent.md spec
 app.get("/users/me", requireAuth, (req: express.Request, res: express.Response) => {
-  const customReq = req as express.Request & { user: unknown; session: unknown };
-  res.json(customReq.user);
+  res.json(req.user);
 });
 
 // Health check
