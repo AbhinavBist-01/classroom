@@ -189,4 +189,68 @@ export class ClassroomService {
 
     return updated;
   }
+
+  /**
+   * Retrieves public classroom info by invite code (for preview)
+   */
+  static async getClassroomByInviteCode(inviteCode: string) {
+    const [classroom] = await db
+      .select({
+        id: classroomsTable.id,
+        name: classroomsTable.name,
+        github_org: classroomsTable.github_org,
+        invite_code: classroomsTable.invite_code,
+      })
+      .from(classroomsTable)
+      .where(eq(classroomsTable.invite_code, inviteCode.trim().toUpperCase()))
+      .limit(1);
+
+    return classroom ?? null;
+  }
+
+  /**
+   * Enrolls an authenticated user into the classroom via invite code
+   */
+  static async joinClassroomByCode(inviteCode: string, userId: string) {
+    const classroom = await this.getClassroomByInviteCode(inviteCode);
+    if (!classroom) {
+      return { status: "not_found" as const };
+    }
+
+    // Check if user is the owner
+    const [fullClassroom] = await db
+      .select({ owner_id: classroomsTable.owner_id })
+      .from(classroomsTable)
+      .where(eq(classroomsTable.id, classroom.id))
+      .limit(1);
+
+    if (fullClassroom?.owner_id === userId) {
+      return { status: "already_enrolled" as const, role: "owner" as const, classroom };
+    }
+
+    // Check existing membership
+    const [existing] = await db
+      .select()
+      .from(classroomMembersTable)
+      .where(
+        and(
+          eq(classroomMembersTable.classroom_id, classroom.id),
+          eq(classroomMembersTable.user_id, userId)
+        )
+      )
+      .limit(1);
+
+    if (existing) {
+      return { status: "already_enrolled" as const, role: existing.role, classroom };
+    }
+
+    // Enroll as student
+    await db.insert(classroomMembersTable).values({
+      classroom_id: classroom.id,
+      user_id: userId,
+      role: "student",
+    });
+
+    return { status: "enrolled" as const, role: "student" as const, classroom };
+  }
 }

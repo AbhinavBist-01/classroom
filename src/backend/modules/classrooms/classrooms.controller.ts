@@ -116,4 +116,67 @@ export class ClassroomController {
       res.status(500).json({ error: "Failed to regenerate invite code" });
     }
   }
+
+  /**
+   * GET /classrooms/join/:code
+   */
+  static async previewJoin(req: Request, res: Response): Promise<void> {
+    const rawParam = req.params.code;
+    const code = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+
+    if (!code || !code.trim()) {
+      res.status(400).json({ error: "Invite code is required" });
+      return;
+    }
+
+    try {
+      const classroom = await ClassroomService.getClassroomByInviteCode(code);
+      if (!classroom) {
+        res.status(404).json({ error: "Invalid or expired invite code" });
+        return;
+      }
+
+      res.json(classroom);
+    } catch {
+      res.status(500).json({ error: "Failed to preview classroom" });
+    }
+  }
+
+  /**
+   * POST /classrooms/join/:code
+   */
+  static async join(req: Request, res: Response): Promise<void> {
+    const rawParam = req.params.code;
+    const code = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+
+    if (!code || !code.trim()) {
+      res.status(400).json({ error: "Invite code is required" });
+      return;
+    }
+
+    try {
+      const result = await ClassroomService.joinClassroomByCode(code, req.user!.id);
+      if (result.status === "not_found") {
+        res.status(404).json({ error: "Invalid or expired invite code" });
+        return;
+      }
+
+      if (result.status === "already_enrolled") {
+        res.status(200).json({
+          message: "You are already enrolled in this classroom",
+          role: result.role,
+          classroom: result.classroom,
+        });
+        return;
+      }
+
+      res.status(201).json({
+        message: "Successfully joined classroom",
+        role: result.role,
+        classroom: result.classroom,
+      });
+    } catch {
+      res.status(500).json({ error: "Failed to join classroom" });
+    }
+  }
 }
