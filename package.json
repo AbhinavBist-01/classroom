@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/backend/index.ts",
+    "dev:backend": "tsx watch src/backend/index.ts",
+    "dev:frontend": "next dev src/frontend -p 3000",
     "build": "tsc",
+    "build:frontend": "next build src/frontend",
     "start": "node dist/backend/index.js",
     "worker": "tsx src/backend/workers/index.ts",
     "db:generate": "pnpm exec drizzle-kit generate",
@@ -23,19 +26,30 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.5.0",
     "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.5.6",
     "drizzle-kit": "1.0.0-rc.4",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   },
   "dependencies": {
     "better-auth": "^1.7.4",
     "bullmq": "^6.3.4",
+    "clsx": "^2.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "drizzle-orm": "1.0.0-rc.4",
     "express": "^5.2.1",
     "ioredis": "^6.0.0",
+    "lucide-react": "^1.45.0",
+    "next": "^16.3.5",
     "octokit": "^5.0.5",
-    "pg": "^8.23.0"
+    "pg": "^8.23.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.6.0"
   }
 }

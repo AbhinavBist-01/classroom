@@ -9,11 +9,11 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    // "types": [],
-    // For nodejs:
-    "lib": ["esnext"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "types": ["node"],
-    // and npm install -D @types/node
+    "paths": {
+      "@/*": ["./src/*"]
+    },
 
     // Other Outputs
     "sourceMap": true,
@@ -40,5 +40,6 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true
-  }
+  },
+  "exclude": ["src/frontend/**/*"]
 }

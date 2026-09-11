@@ -96,4 +96,35 @@ export class SubmissionController {
       res.status(500).json({ error: "Failed to trigger regrading" });
     }
   }
+
+  /**
+   * GET /assignments/:id/submissions
+   * Teacher view: all student submissions for an assignment
+   */
+  static async listByAssignment(req: Request, res: Response): Promise<void> {
+    const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const assignmentId = parseInt(rawId ?? "", 10);
+
+    if (isNaN(assignmentId)) {
+      res.status(400).json({ error: "Invalid assignment ID" });
+      return;
+    }
+
+    try {
+      const result = await SubmissionService.getAssignmentSubmissions(assignmentId, req.user!.id);
+      if (result.status === "not_found") {
+        res.status(404).json({ error: result.error });
+        return;
+      }
+      if (result.status === "forbidden") {
+        res.status(403).json({ error: result.error });
+        return;
+      }
+
+      res.status(200).json(result.data);
+    } catch (err) {
+      console.error("[SubmissionController:listByAssignment] Error:", err);
+      res.status(500).json({ error: "Failed to retrieve submissions" });
+    }
+  }
 }

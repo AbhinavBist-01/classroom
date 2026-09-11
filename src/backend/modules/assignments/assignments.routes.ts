@@ -13,5 +13,8 @@ assignmentsRouter.get("/:id", AssignmentController.getById);
 // PUT /assignments/:id - Update assignment details / tests (owner & ta)
 assignmentsRouter.put("/:id", AssignmentController.update);
 
+// GET /assignments/:id/submissions - View all student submissions (owner & ta)
+assignmentsRouter.get("/:id/submissions", SubmissionController.listByAssignment);
+
 // DELETE /assignments/:id - Delete assignment (owner only)
 assignmentsRouter.delete("/:id", AssignmentController.delete);

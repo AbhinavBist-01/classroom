@@ -241,4 +241,92 @@ export class SubmissionService {
       submission: updated,
     };
   }
+
+  /**
+   * Retrieves all submissions for an assignment with student details (Teacher Dashboard View)
+   */
+  static async getAssignmentSubmissions(assignmentId: number, requestingUserId: string) {
+    // 1. Fetch assignment and check instructor authorization
+    const [assignment] = await db
+      .select({
+        id: assignmentsTable.id,
+        title: assignmentsTable.title,
+        classroom_id: assignmentsTable.classroom_id,
+        max_score: assignmentsTable.max_score,
+        owner_id: classroomsTable.owner_id,
+      })
+      .from(assignmentsTable)
+      .innerJoin(classroomsTable, eq(assignmentsTable.classroom_id, classroomsTable.id))
+      .where(eq(assignmentsTable.id, assignmentId))
+      .limit(1);
+
+    if (!assignment) {
+      return { status: "not_found" as const, error: "Assignment not found" };
+    }
+
+    const isOwner = assignment.owner_id === requestingUserId;
+    let isAuthorized = isOwner;
+
+    if (!isAuthorized) {
+      const [membership] = await db
+        .select({ role: classroomMembersTable.role })
+        .from(classroomMembersTable)
+        .where(
+          and(
+            eq(classroomMembersTable.classroom_id, assignment.classroom_id),
+            eq(classroomMembersTable.user_id, requestingUserId)
+          )
+        )
+        .limit(1);
+
+      if (membership && (membership.role === "owner" || membership.role === "ta")) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return { status: "forbidden" as const, error: "Access denied. Instructor permissions required." };
+    }
+
+    // 2. Fetch all submissions joined with user info
+    const submissions = await db
+      .select({
+        id: submissionsTable.id,
+        student_id: submissionsTable.student_id,
+        student_name: user.name,
+        student_email: user.email,
+        github_repo: submissionsTable.github_repo,
+        commit_sha: submissionsTable.commit_sha,
+        status: submissionsTable.status,
+        score: submissionsTable.score,
+        submitted_at: submissionsTable.submitted_at,
+      })
+      .from(submissionsTable)
+      .innerJoin(user, eq(submissionsTable.student_id, user.id))
+      .where(eq(submissionsTable.assignment_id, assignmentId));
+
+    // 3. Compute metrics summary
+    const total = submissions.length;
+    const graded = submissions.filter((s) => s.status === "graded").length;
+    const totalScore = submissions.reduce((acc, s) => acc + s.score, 0);
+    const avgScore = total > 0 ? Math.round((totalScore / total) * 10) / 10 : 0;
+
+    return {
+      status: "success" as const,
+      data: {
+        assignment: {
+          id: assignment.id,
+          title: assignment.title,
+          max_score: assignment.max_score,
+        },
+        summary: {
+          total,
+          graded,
+          avg_score: avgScore,
+          max_score: assignment.max_score,
+        },
+        submissions,
+      },
+    };
+  }
 }
