@@ -113,6 +113,28 @@ export default function AssignmentDetailPage({ params }: { params: Promise<{ id:
     fetchAssignmentData();
   }, [assignmentId]);
 
+  // Auto-poll when submission is in provisioning or grading state
+  useEffect(() => {
+    if (!submission) return;
+    if (submission.status !== "provisioning" && submission.status !== "pending") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const updated = await apiFetch<SubmissionRecord>(`/submissions/${submission.id}`);
+        if (updated) {
+          setSubmission(updated);
+          if (updated.status === "graded") {
+            fetchGrades(updated.id);
+          }
+        }
+      } catch {
+        // ignore transient poll error
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [submission?.id, submission?.status]);
+
   const handleAcceptAssignment = async () => {
     try {
       setIsAccepting(true);
